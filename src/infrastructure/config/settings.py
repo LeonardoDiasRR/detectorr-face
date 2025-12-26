@@ -279,7 +279,7 @@ class FindfaceConfig:
     user: str
     password: str
     uuid: str
-    camera_prefix: str = 'TESTE'
+    camera_group_prefix: str = 'TESTE'
     jpeg_quality: int = 95
     
     @classmethod
@@ -301,7 +301,7 @@ class FindfaceConfig:
                 'Configure as variáveis de ambiente ou passe como parâmetros.'
             )
         
-        return cls(url=findface_url, user=findface_user, password=findface_password, uuid=findface_uuid, jpeg_quality=jpeg_quality)
+        return cls(url=findface_url, user=findface_user, password=findface_password, uuid=findface_uuid, camera_group_prefix='TESTE', jpeg_quality=jpeg_quality)
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any], jpeg_quality: int = 95) -> 'FindfaceConfig':
@@ -323,7 +323,7 @@ class FindfaceConfig:
             )
         
         # Carrega configurações opcionais do config.yaml
-        camera_prefix = data.get('camera_prefix', 'TESTE') if data else 'TESTE'
+        camera_group_prefix = data.get('camera_group_prefix', 'TESTE') if data else 'TESTE'
         yaml_jpeg_quality = data.get('jpeg_quality', 95) if data else 95
         
         return cls(
@@ -331,7 +331,7 @@ class FindfaceConfig:
             user=findface_user,
             password=findface_password,
             uuid=findface_uuid,
-            camera_prefix=camera_prefix,
+            camera_group_prefix=camera_group_prefix,
             jpeg_quality=yaml_jpeg_quality
         )
     
@@ -354,7 +354,7 @@ class FindfaceConfig:
                 'Configure as variáveis de ambiente ou passe como parâmetros.'
             )
         
-        return cls(url=findface_url, user=findface_user, password=findface_password, uuid=findface_uuid)
+        return cls(url=findface_url, user=findface_user, password=findface_password, uuid=findface_uuid, camera_group_prefix='TESTE')
 
 
 @dataclass
@@ -437,7 +437,8 @@ class ApplicationSettings:
                 'user': self.findface.user,
                 'password': self.findface.password,
                 'uuid': self.findface.uuid,
-                'camera_prefix': self.findface.camera_prefix,
+                'camera_group_prefix': self.findface.camera_group_prefix,
+                'jpeg_quality': self.findface.jpeg_quality,
             },
             'logging': self.logging.to_dict(),
             'track': self.track.to_dict(),

@@ -19,27 +19,36 @@ class CameraRepositoryFindface(CameraRepository):
     def __init__(
         self,
         findface_client: Union[FindfaceMulti, FindfaceAdapter],
-        camera_prefix: str = 'TESTE'
+        camera_group_prefix: str = None
     ):
         """
         Inicializa o repositório de câmeras do FindFace.
 
         :param findface_client: Instância do cliente FindfaceMulti ou seu adapter.
-        :param camera_prefix: Prefixo para filtrar grupos de câmeras virtuais.
+        :param camera_group_prefix: Prefixo para filtrar grupos de câmeras virtuais.
         """
         # Se recebeu FindfaceMulti direto, envolve em adapter
         if isinstance(findface_client, FindfaceMulti) and not isinstance(findface_client, FindfaceAdapter):
             findface_client = FindfaceAdapter(findface_client)
-        
+
         # Validar que o cliente/adapter tem os métodos necessários
         if not hasattr(findface_client, 'camera_groups') or not hasattr(findface_client, 'cameras'):
             raise TypeError(
                 "O parâmetro 'findface_client' deve ter as propriedades 'camera_groups' e 'cameras'."
             )
-        
+
         self.findface = findface_client
-        self.camera_prefix = camera_prefix
+
+        # Importa o carregador de configuração para buscar o prefixo do grupo de câmeras
         self.logger = logging.getLogger(self.__class__.__name__)
+        try:
+            from src.infrastructure.config.config_loader import get_settings
+            config = get_settings()
+            self.camera_prefix = getattr(config.findface, 'camera_group_prefix', 'TESTE') or 'TESTE'
+            self.logger.info(f"CameraRepositoryFindface: Usando camera_prefix='{self.camera_prefix}' (config)")
+        except Exception as e:
+            self.camera_prefix = camera_group_prefix or 'TESTE'
+            self.logger.info(f"CameraRepositoryFindface: Usando camera_prefix='{self.camera_prefix}' (fallback). Erro ao carregar config: {e}")
 
 
     def get_cameras(self) -> List[Camera]:

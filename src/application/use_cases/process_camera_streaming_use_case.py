@@ -530,11 +530,11 @@ class ProcessCameraStreamingUseCase:
                 
                 # Registrar novo track
                 self._track_registry.register(camera_id, track_id, track)
-                self.logger.debug(f"[Camera {camera_id}] Novo track criado: {track_id}")
+                # self.logger.debug(f"[Camera {camera_id}] Novo track criado: {track_id}")
             else:
                 # Track existe - adicionar evento
                 track.add_event(event)
-                self.logger.debug(f"[Camera {camera_id}] Evento adicionado ao track: {track_id}")
+                # self.logger.debug(f"[Camera {camera_id}] Evento adicionado ao track: {track_id}")
         
         except Exception as e:
             self.logger.error(f"[Camera {camera_id}] Erro ao processar track: {e}", exc_info=True)
@@ -565,54 +565,54 @@ class ProcessCameraStreamingUseCase:
                 # Extrair full_frame da imagem original
                 frame_image = frame_results.orig_img if hasattr(frame_results, 'orig_img') and frame_results.orig_img is not None else np.zeros((1, 1, 3), dtype=np.uint8)
                 full_frame_vo = FullFrameVO(frame_image, copy=False)
-                
+
                 # Obter dimensões do frame
                 frame_height, frame_width = frame_image.shape[:2]
-                
+
                 # Extrair keypoints do Results se disponíveis
                 frame_keypoints = frame_results.keypoints if hasattr(frame_results, 'keypoints') else None
-                
+
                 # Extrair bboxes, landmarks, track_ids e confidences dos resultados
                 bboxes = []
                 landmarks_list = []
                 track_ids = []
                 confidences = []
-                
+
                 if frame_results.boxes and hasattr(frame_results.boxes, '__len__'):
                     for detection_idx, box in enumerate(frame_results.boxes):
                         # Usar método helper que trata tensores CUDA
                         # Passar frame_keypoints e detection_idx para extrair landmarks corretamente
                         detection_data = self._extract_detection_data(box, detection_idx, frame_keypoints, frame_height, frame_width)
-                        
+
                         if detection_data is None:
                             continue
-                        
+
                         (x1, y1, x2, y2), confidence_value, landmarks_data, track_id = detection_data
-                        
+
                         # Criar BboxVO
                         bbox = BboxVO((int(x1), int(y1), int(x2), int(y2)))
                         bboxes.append(bbox)
-                        
+
                         # Criar FaceLandmarksVO - normalizar landmarks (adicionar confidence se necessário)
                         normalized_landmarks = self._normalize_landmarks(landmarks_data)
                         landmarks = FaceLandmarksVO(normalized_landmarks)
                         landmarks_list.append(landmarks)
-                        
+
                         # Usar track_id extraído ou fallback para índice
                         if track_id is None:
                             track_id = detection_idx
                         track_ids.append(track_id)
-                        
+
                         # Criar ConfidenceVO
                         confidence = ConfidenceVO(confidence_value)
                         confidences.append(confidence)
-                
+
                 # Extrair class IDs de frame_results.boxes.cls
                 classes = []
                 if frame_results.boxes and hasattr(frame_results.boxes, 'cls') and frame_results.boxes.cls is not None:
                     cls_data = self._to_numpy(frame_results.boxes.cls)
                     classes = [int(cls) for cls in cls_data]
-                
+
                 # Criar Frame com informações do frame e detecções decompostas
                 frame = Frame(
                     full_frame=full_frame_vo,
@@ -626,11 +626,17 @@ class ProcessCameraStreamingUseCase:
                     confidences=confidences,
                     classes=classes
                 )
-                
+
                 # Enfileirar de forma não-bloqueante
-                self.frame_queue.put_nowait(frame)
-                self.logger.debug(
-                )
-                
+                try:
+                    self.frame_queue.put_nowait(frame)
+                    # self.logger.debug(f"[Camera {camera_id}] Frame enfileirado para processamento assíncrono")
+                except Exception as e:
+                    import queue
+                    if isinstance(e, queue.Full):
+                        self.logger.warning(f"[Camera {camera_id}] frame_queue cheia ao tentar enfileirar novo frame.")
+                    else:
+                        raise
+
             except Exception as e:
                 pass

@@ -193,7 +193,7 @@ class ProcessCameraStreamingUseCase:
                 del self.face_model
                 self.face_model = None
         except Exception as e:
-            self.logger.warning(f"[Camera {camera_id}] Erro ao liberar modelos: {e}")
+            self.logger.error(f"[Camera {camera_id}] Erro ao liberar modelos: {e}")
 
     def _normalize_landmarks(self, landmarks_data):
         """

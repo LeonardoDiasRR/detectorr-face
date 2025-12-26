@@ -183,7 +183,7 @@ class ProcessBestEventQueueUseCase:
                 )
                 
                 if sucesso:
-                    self._logger.debug(
+                    self._logger.info(
                         f"Event enviado para FindFace. "
                         f"track_id={event.track_id}, "
                         f"camera_id={event.frame.camera_id.value()}, "

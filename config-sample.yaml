@@ -64,6 +64,6 @@ queues:
     timeout: 0.5
 
 findface:
-  camera_prefix: "TESTE"
+  camera_group_prefix: "TESTE"
   # Qualidade mínima para aceitar face (0 a 1)
   jpeg_quality: 95

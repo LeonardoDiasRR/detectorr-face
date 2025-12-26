@@ -114,9 +114,17 @@ class FindfaceAdapter:
             # Como está no worker thread, não afeta o throughput de detecção
             imagem_bytes = event.frame.full_frame.jpg(quality=self._jpeg_quality)
             
-            # Usa bbox sem expansão
+            # Expande bbox em 20% mantendo o centro
             x1, y1, x2, y2 = event.bbox.value()
-            roi = [int(x1), int(y1), int(x2), int(y2)]
+            width = x2 - x1
+            height = y2 - y1
+            expand_w = width * 0.2 / 2
+            expand_h = height * 0.2 / 2
+            new_x1 = max(0, x1 - expand_w)
+            new_y1 = max(0, y1 - expand_h)
+            new_x2 = x2 + expand_w
+            new_y2 = y2 + expand_h
+            roi = [int(new_x1), int(new_y1), int(new_x2), int(new_y2)]
             
             # Converte timestamp para formato ISO 8601 com timezone local
             timestamp_iso = event.frame.timestamp.value().astimezone().isoformat()

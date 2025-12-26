@@ -1,0 +1,3 @@
+"""
+Testes da infraestrutura - clients
+"""

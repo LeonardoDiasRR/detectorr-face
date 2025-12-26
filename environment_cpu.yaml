@@ -1,0 +1,48 @@
+name: detectorr-face
+channels:
+  - conda-forge
+
+dependencies:
+  # ===============================
+  # Python (estável e amplamente compatível)
+  # ===============================
+  - python=3.12
+
+  # ===============================
+  # NumPy / SciPy / OpenCV (CPU)
+  # ===============================
+  - numpy
+  - scipy
+  - opencv
+
+  # ===============================
+  # OpenVINO (runtime via Conda)
+  # ===============================
+  - openvino>=2023.0
+
+  # ===============================
+  # Utilitários e dependências gerais
+  # ===============================
+  - pyyaml
+  - requests
+  - urllib3
+  - tzlocal
+  - filterpy
+  - lap>=0.5.12
+
+  # ===============================
+  # Pip
+  # ===============================
+  - pip
+  - pip:
+      # Testing
+      - pytest>=7.0.0
+
+      # YOLO (CPU)
+      - ultralytics
+
+      # OpenVINO tools / converters (pip only)
+      - openvino-dev>=2023.0.0
+
+      # dotenv (nome correto no pip)
+      - python-dotenv

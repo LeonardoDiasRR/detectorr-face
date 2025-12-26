@@ -1,0 +1,73 @@
+name: detectorr-face
+
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+
+dependencies:
+  # =========================
+  # Core
+  # =========================
+  - python=3.10
+  - pip
+
+  # =========================
+  # Scientific stack
+  # =========================
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - pillow
+  - pyyaml
+  - tqdm
+  - requests
+
+  # =========================
+  # PyTorch GPU
+  # =========================
+  - pytorch
+  - torchvision
+  - pytorch-cuda=12.4
+
+  # =========================
+  # ONNX core
+  # =========================
+  - onnx
+
+  # =========================
+  # NVIDIA utils
+  # =========================
+  - nvidia-ml-py
+  - gpustat
+
+  # =========================
+  # Pip-only (OBRIGATÓRIO)
+  # =========================
+  - pip:
+      # Testing
+      - pytest>=7.0.0
+
+      # YOLO
+      - ultralytics>=8.0.0
+
+      # TensorRT (única forma possível)
+      - tensorrt-cu12>=10.0,<11
+
+      # ONNX Runtime GPU
+      - onnxruntime-gpu>=1.15.1,<2.0.0
+
+      # ONNX tools
+      - onnxsim
+      - onnxslim>=0.1.71
+
+      # OpenVINO
+      - openvino-dev>=2023.0.0
+
+      # dotenv (nome correto no pip)
+      - python-dotenv
+
+      # Lap
+      - lap

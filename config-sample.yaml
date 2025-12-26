@@ -1,0 +1,69 @@
+track_model:
+  backend: "models/yolo/yolov8n-face.pt"
+  params:
+    conf: 0.05
+    iou: 0.5
+    imgsz: 512  # 1920, 1280, 640, 512
+    device: "cpu"  # "cpu", "cuda:0", "cuda:1", etc.
+    half: false
+    classes: [0]  # Classe 0 = pessoa
+    tracker: "bytetrack.yaml"
+    stream: true
+    persist: false
+    verbose: false
+    save: false
+    project: "yolo_results"
+    name: "yolo_run"
+    show: false
+    
+face_model:
+  backend: "models/yolo/yolov12n-face.pt"
+  params:
+    conf: 0.5
+    imgsz: 512  # 1920, 1280, 640, 512    
+    device: "cpu"  # "cpu", "cuda:0", "cuda:1", etc.
+    half: false
+    classes: [0]  # Classe 0 = pessoa
+    stream: false
+    verbose: false
+    save: false
+    project: "yolo_results"
+    name: "yolo_run_faces"
+
+performance:  
+  skip_frames: 1  # 0 - Processa todos os frames
+
+filter:
+  min_box_area: 1000  # Área mínima da caixa delimitadora para considerar detecção
+  min_box_conf: 0.5  # Confiança mínima da caixa delimitadora para considerar detecção
+
+track:
+  # Limiar mínimo de variação em pixels para considerar movimento
+  min_movement_pixels: 2.0
+  # Tempo em segundos para considerar um track inativo (para testes rápidos)
+  lost_ttl: 3
+  # Tempo máximo de vida ativa de um track (em segundos)
+  active_ttl: 30
+
+logging:
+  file: "detectorr.log"
+  # Nível de log: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: "INFO"
+  # Formato das mensagens de log
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  # Tamanho máximo do arquivo de log antes da rotação
+  max_size: 2  # MB
+  # Número de arquivos de log antigos a serem mantidos
+  backup_count: 2
+
+# Configurações das filas de processamento  
+queues:
+  BestEventQueue:
+    maxsize: 59         # Máx obs: 69 | Segurança: 74%
+    workers: 0          # 0 - Automática. int(max(8, cpu * 2))
+    timeout: 0.5
+
+findface:
+  camera_prefix: "TESTE"
+  # Qualidade mínima para aceitar face (0 a 1)
+  jpeg_quality: 95

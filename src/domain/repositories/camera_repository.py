@@ -1,0 +1,25 @@
+"""
+Interface do repositório de câmeras (Domain Layer).
+Define o contrato que as implementações concretas devem seguir.
+"""
+
+from abc import ABC, abstractmethod
+from typing import List
+from src.domain.entities import Camera
+
+
+class CameraRepository(ABC):
+    """
+    Interface abstrata para repositório de câmeras.
+    Segue o padrão Repository do DDD.
+    """
+
+    @abstractmethod
+    def get_cameras(self) -> List[Camera]:
+        """
+        Obtém todas as câmeras do sistema (ativas e inativas).
+        Usado para monitoramento dinâmico de mudanças de status.
+        
+        :return: Lista de entidades Camera (todas).
+        """
+        pass

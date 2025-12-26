@@ -409,12 +409,14 @@ class FilterConfig:
     
     min_box_area: int = 1000  # Área mínima da caixa delimitadora
     min_box_conf: float = 0.5  # Confiança mínima da caixa delimitadora
+    min_movement_pixels: float = 2.0  # Limiar mínimo de variação em pixels para considerar movimento
     
     def to_dict(self) -> Dict[str, Any]:
         """Converter configuração para dicionário."""
         return {
             'min_box_area': self.min_box_area,
             'min_box_conf': self.min_box_conf,
+            'min_movement_pixels': self.min_movement_pixels,
         }
     
     @classmethod
@@ -423,6 +425,7 @@ class FilterConfig:
         return cls(
             min_box_area=data.get('min_box_area', 1000),
             min_box_conf=data.get('min_box_conf', 0.5),
+            min_movement_pixels=data.get('min_movement_pixels', 2.0),
         )
 
 

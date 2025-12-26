@@ -144,6 +144,35 @@ class ProcessBestEventQueueUseCase:
             f"Consumido da BestEventQueue. Itens restantes na fila: {self._queue.qsize()}"
         )
 
+        # Aplicar filtros de tamanho, confiança e movimento antes de enviar
+        try:
+            from src.infrastructure.config.config_loader import get_settings
+            settings = get_settings()
+            min_box_area = settings.filter.min_box_area
+            min_box_conf = settings.filter.min_box_conf
+        except Exception:
+            min_box_area = 1000
+            min_box_conf = 0.5
+
+        try:
+            x1, y1, x2, y2 = event.bbox.value()
+            bbox_area = (x2 - x1) * (y2 - y1)
+        except Exception:
+            bbox_area = 0.0
+
+        try:
+            confidence_value = event.confidence.value()
+        except Exception:
+            confidence_value = 0.0
+
+        movement_flag = getattr(event, '_movement', False)        
+
+        if bbox_area < min_box_area or confidence_value < min_box_conf or not movement_flag:
+            self._logger.debug(
+                f"Event filtrado (não enviado a FindFace). area={bbox_area}, conf={confidence_value}, movement={movement_flag}"
+            )
+            return
+
         if self._findface_adapter:
             # Envio síncrono - bloqueia até conclusão
             try:
@@ -164,7 +193,7 @@ class ProcessBestEventQueueUseCase:
                         f"worker_id={worker_id}"
                     )
                 else:
-                    self._logger.warning(
+                    self._logger.error(
                         f"Falha ao enviar Event para FindFace. "
                         f"track_id={event.track_id}, "
                         f"camera_id={event.frame.camera_id.value()}, "

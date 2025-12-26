@@ -185,6 +185,32 @@ class TrackConfig:
 
 
 @dataclass
+class FilterConfig:
+    """Configuração de filtros de detecção."""
+    
+    min_box_area: int = 1000  # Área mínima da caixa delimitadora
+    min_box_conf: float = 0.5  # Confiança mínima da caixa delimitadora
+    min_movement_pixels: float = 2.0  # Limiar mínimo de variação em pixels para considerar movimento
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Converter configuração para dicionário."""
+        return {
+            'min_box_area': self.min_box_area,
+            'min_box_conf': self.min_box_conf,
+            'min_movement_pixels': self.min_movement_pixels,
+        }
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'FilterConfig':
+        """Criar configuração a partir de dicionário."""
+        return cls(
+            min_box_area=data.get('min_box_area', 1000),
+            min_box_conf=data.get('min_box_conf', 0.5),
+            min_movement_pixels=data.get('min_movement_pixels', 2.0),
+        )
+
+
+@dataclass
 class LoggingConfig:
     """Configuração do sistema de logging assíncrono."""
     
@@ -415,7 +441,7 @@ class ApplicationSettings:
         params=FaceModelParams()
     ))
     performance: PerformanceConfig = field(default_factory=lambda: PerformanceConfig())
-    
+
     def __repr__(self) -> str:
         """Representação da configuração."""
         return (
@@ -424,7 +450,8 @@ class ApplicationSettings:
             f"face_model={self.face_model.backend}, "
             f"findface={self.findface.url}, "
             f"logging={self.logging.file}, "
-            f"track={{'min_movement_pixels': {self.track.min_movement_pixels}, 'lost_ttl': {self.track.lost_ttl}, 'active_ttl': {self.track.active_ttl}}})"
+            f"track={{'min_movement_pixels': {self.track.min_movement_pixels}, 'lost_ttl': {self.track.lost_ttl}, 'active_ttl': {self.track.active_ttl}}}, "
+            f"filter={{'min_movement_pixels': {self.filter.min_movement_pixels}}})"
         )
     
     def to_dict(self) -> Dict[str, Any]:

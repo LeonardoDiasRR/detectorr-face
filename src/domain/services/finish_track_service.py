@@ -87,9 +87,14 @@ class FinishTrackService:
             # Remover track do registro (protegido por lock)
             self._track_registry.remove(camera_id.value(), track_id)
         
-        # Enfileirar melhor evento (entidade de domínio) fora do lock
+        # Marcar se o track teve movimento e enfileirar melhor evento (entidade de domínio) fora do lock
         # Usa put_nowait() para não bloquear caso a fila esteja cheia
         try:
+            # Anexar flag de movimento para que o consumidor possa filtrar
+            try:
+                setattr(best_event, '_movement', track.has_movement)
+            except Exception:
+                pass
             self._best_event_queue.put_nowait(best_event)
         except queue.Full:
             # Fila cheia - descartar evento e liberar memória

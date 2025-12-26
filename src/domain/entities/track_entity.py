@@ -46,6 +46,7 @@ class Track:
         
         self._id = id
         self._best_event: Optional[Event] = None
+        self._last_event: Optional[Event] = None
         self._event_count: int = 0
         self._movement_count: int = 0
         self._max_events: int = max_events
@@ -65,6 +66,11 @@ class Track:
     def best_event(self) -> Optional[Event]:
         """Retorna o evento com melhor qualidade facial."""
         return self._best_event
+
+    @property
+    def last_event(self) -> Optional[Event]:
+        """Retorna o último evento adicionado ao track."""
+        return self._last_event
 
     @property
     def event_count(self) -> int:
@@ -136,13 +142,47 @@ class Track:
         # Primeiro evento do track
         if self.is_empty:
             self._best_event = event
+            self._last_event = event
             self._event_count = 1
             self._movement_count = 0  # Primeiro evento não tem movimento
             return
         
         # Eventos subsequentes
         self._event_count += 1
-        
+
+        # Detectar movimento comparando com o evento anterior (se existir)
+        previous_event = self._last_event
+        if previous_event is not None:
+            try:
+                x1_prev, y1_prev, x2_prev, y2_prev = previous_event.bbox.value()
+                x1_new, y1_new, x2_new, y2_new = event.bbox.value()
+                center_x_prev = (x1_prev + x2_prev) / 2.0
+                center_y_prev = (y1_prev + y2_prev) / 2.0
+                center_x_new = (x1_new + x2_new) / 2.0
+                center_y_new = (y1_new + y2_new) / 2.0
+                dx = center_x_new - center_x_prev
+                dy = center_y_new - center_y_prev
+                import math
+                distance = math.hypot(dx, dy)
+            except Exception:
+                distance = 0.0
+        else:
+            distance = 0.0
+
+        # Obter threshold de movimento das configurações (fallback 2.0)
+        try:
+            from src.infrastructure.config.config_loader import get_settings
+            settings = get_settings()
+            threshold = float(settings.filter.min_movement_pixels)
+        except Exception:
+            threshold = 2.0
+
+        if distance > threshold:
+            self._movement_count += 1
+
+        # Atualiza o último evento
+        self._last_event = event
+
         # Atualiza melhor evento se qualidade for superior
         # Se face_quality_score for None, usa a confiança como critério
         if self._best_event is None:
@@ -165,96 +205,7 @@ class Track:
         """
         return self._best_event
 
-    def get_movement_statistics(self) -> Dict[str, float]:
-        """
-        Retorna estatísticas detalhadas sobre o movimento no track.
-        OTIMIZAÇÃO: Baseado apenas em best_event.
-        
-        :return: Dicionário com estatísticas de movimento.
-        """
-        if self.is_empty or self._best_event is None:
-            return {
-                'total_distance': 0.0,
-                'average_distance': 0.0,
-                'max_distance': 0.0,
-                'min_distance': 0.0,
-                'movement_detected': False,
-                'movement_percentage': 0.0,
-                'movement_count': 0,
-                'event_count': 0
-            }
-        
-        if self.event_count < 2:
-            return {
-                'total_distance': 0.0,
-                'average_distance': 0.0,
-                'max_distance': 0.0,
-                'min_distance': 0.0,
-                'movement_detected': False,
-                'movement_percentage': 0.0,
-                'movement_count': self._movement_count,
-                'event_count': self._event_count
-            }
-        
-        import math
-        
-        # Calcula centros do best bbox
-        x1_best, y1_best, x2_best, y2_best = self._best_event.bbox.value()
-        center_x_best = (x1_best + x2_best) / 2.0
-        center_y_best = (y1_best + y2_best) / 2.0
-        
-        # Distância do centro do best (sempre zero neste caso)
-        distance = 0.0
-        
-        # Percentual de frames com movimento
-        movement_percentage = (self._movement_count / self._event_count) * 100.0
-        
-        return {
-            'total_distance': distance,
-            'average_distance': distance,
-            'max_distance': distance,
-            'min_distance': distance,
-            'movement_detected': distance > 0.0,
-            'movement_percentage': movement_percentage,
-            'movement_count': self._movement_count,
-            'event_count': self._event_count
-        }
 
-    def verify_ttl(self, current_frame_timestamp) -> bool:
-        """
-        Verifica se o track expirou por inatividade (TTL).
-        
-        Se o track expirou, publica um evento de domínio comunicando
-        o encerramento de forma assíncrona.
-
-        :param current_frame_timestamp: Timestamp do frame atual (TimestampVO ou datetime).
-        :return: True se o track expirou, False caso contrário.
-        :raises TypeError: Se current_frame_timestamp não for do tipo esperado.
-        """
-        from src.domain.value_objects.timestamp_vo import TimestampVO
-        
-        # Validar tipo do parâmetro
-        if not isinstance(current_frame_timestamp, (datetime, TimestampVO)):
-            raise TypeError(
-                f"current_frame_timestamp deve ser datetime ou TimestampVO, "
-                f"recebido: {type(current_frame_timestamp).__name__}"
-            )
-        
-        # Extrair valor datetime se for TimestampVO
-        current_dt = current_frame_timestamp.value() if isinstance(current_frame_timestamp, TimestampVO) else current_frame_timestamp
-        
-        # Se não há timestamp registrado, o track não pode ter expirado
-        if self._last_seen_frame_timestamp is None:
-            return False
-        
-        # Calcular tempo decorrido em segundos
-        time_elapsed = (current_dt - self._last_seen_frame_timestamp).total_seconds()
-        
-        # Verificar se expirou
-        if time_elapsed > self._ttl:
-            return True
-        
-        return False
 
     def to_dict(self) -> Dict[str, Any]:
         """

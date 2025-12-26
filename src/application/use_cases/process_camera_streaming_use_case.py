@@ -463,16 +463,9 @@ class ProcessCameraStreamingUseCase:
                     if detection_idx < len(frame.classes):
                         class_id = frame.classes[detection_idx]
                     
-                    # Aplicar filtros de tamanho e confiança do bbox
-                    x1, y1, x2, y2 = bbox.value()
-                    bbox_area = (x2 - x1) * (y2 - y1)
-                    confidence_value = confidence.value()
-                    
-                    min_box_area = self._config.filter.min_box_area
-                    min_box_conf = self._config.filter.min_box_conf
-                    
-                    if bbox_area < min_box_area or confidence_value < min_box_conf:
-                        continue
+                    # NOTE: Filtros de tamanho/confiança foram movidos
+                    # para o processamento de melhores eventos (BestEventQueue).
+                    # Aqui apenas criamos o Event para gerenciamento de tracks.
                     
                     # Criar Event
                     event = Event(
@@ -529,7 +522,7 @@ class ProcessCameraStreamingUseCase:
                 # Track não existe - criar novo
                 track = Track(
                     id=IdVO(track_id),
-                    min_movement_pixels=self._config.track.min_movement_pixels
+                    min_movement_pixels=self._config.filter.min_movement_pixels
                 )
                 
                 # Adicionar primeiro evento ao track

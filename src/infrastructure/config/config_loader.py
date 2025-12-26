@@ -85,7 +85,7 @@ class ConfigLoader:
         # Extrair configurações de track
         track_dict = config_dict.get('track', {})
         track_config = TrackConfig.from_dict(track_dict) if track_dict else TrackConfig()
-        
+
         # Extrair configurações de filtro
         filter_dict = config_dict.get('filter', {})
         filter_config = FilterConfig.from_dict(filter_dict) if filter_dict else FilterConfig()

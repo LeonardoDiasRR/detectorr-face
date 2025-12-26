@@ -14,7 +14,7 @@ track_model:
     save: false
     project: "yolo_results"
     name: "yolo_run"
-    show: false
+    show: true
     
 face_model:
   backend: "models/yolo/yolov12n-face.pt"
@@ -34,8 +34,9 @@ performance:
   skip_frames: 1  # 0 - Processa todos os frames
 
 filter:
-  min_box_area: 1000  # Área mínima da caixa delimitadora para considerar detecção
-  min_box_conf: 0.5  # Confiança mínima da caixa delimitadora para considerar detecção
+  min_box_area: 1000        # Área mínima da caixa delimitadora para considerar detecção
+  min_box_conf: 0.5         # Confiança mínima da caixa delimitadora para considerar detecção
+  min_movement_pixels: 2.0  # Limiar mínimo de variação em pixels para considerar movimento
 
 track:
   # Limiar mínimo de variação em pixels para considerar movimento
